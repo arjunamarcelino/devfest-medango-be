@@ -1,14 +1,20 @@
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 import google.generativeai as genai
 from dotenv import load_dotenv
+import requests
 
 # Load environment variables
 load_dotenv()
 
 # Configure Gemini AI
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+# Base URL for Google Places API
+GOOGLE_PLACES_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
 
 # Create the model
 generation_config = {
@@ -61,3 +67,25 @@ async def chat(request: ChatRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+      
+@app.get("/nearby-places")
+def get_nearby_places(
+    location: str = Query(..., description="Location in 'latitude,longitude' format"),
+    radius: int = Query(1000, description="Search radius in meters"),
+    type: str = Query(None, description="Type of place (e.g., restaurant, park)"),
+):
+    """
+    Get nearby places based on location, radius, and type.
+    """
+    params = {
+        "key": GOOGLE_API_KEY,
+        "location": location,
+        "radius": radius,
+        "type": type,  # Optional filter for place type
+    }
+    response = requests.get(GOOGLE_PLACES_URL, params=params)
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Failed to fetch places")
+
+    return response.json()
