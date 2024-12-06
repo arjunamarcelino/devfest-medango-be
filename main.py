@@ -71,8 +71,10 @@ async def chat(request: ChatRequest):
 @app.get("/nearby-places")
 def get_nearby_places(
     location: str = Query(..., description="Location in 'latitude,longitude' format"),
-    radius: int = Query(1000, description="Search radius in meters"),
-    type: str = Query(None, description="Type of place (e.g., restaurant, park)"),
+    radius: int = Query(3000, description="Search radius in meters"),
+    type: str = Query(None, description="Type of place (e.g., restaurant, tourist_attraction)"),
+    keyword: str = Query('populer', description="Search keyword (e.g., populer, favorit, viral)"),
+    language: str = Query("id", description="Language of the response")
 ):
     """
     Get nearby places based on location, radius, and type.
@@ -81,11 +83,20 @@ def get_nearby_places(
         "key": GOOGLE_API_KEY,
         "location": location,
         "radius": radius,
-        "type": type,  # Optional filter for place type
+        "type": type,
+        "keyword": keyword,
+        "language": language,  # Ensure results are in Bahasa Indonesia
+        "rankby": "prominence",  # Rank by popularity/relevance
     }
     response = requests.get(GOOGLE_PLACES_URL, params=params)
 
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Failed to fetch places")
 
-    return response.json()
+    # Parse and filter results by rating if needed
+    places = response.json().get("results", [])
+    filtered_places = [
+        place for place in places if place.get("rating", 0) >= 4.0
+    ]  # Filter by rating >= 4.0
+
+    return {"places": filtered_places}
