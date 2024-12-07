@@ -17,13 +17,13 @@ async def ask_itinerary(request: ItineraryRequest):
         chat_session = model.start_chat()
         response = chat_session.send_message(prompt)
         
-        print(response)  # For debugging purposes
+        # print(response)  # For debugging purposes
         
         # Extract the response text containing the JSON data
         response_text = response.candidates[0].content.parts[0].text.strip()
         
-        print("Raw Response Text:")
-        print(response_text)  # Print the raw response for inspection
+        # print("Raw Response Text:")
+        # print(response_text)  # Print the raw response for inspection
         
         # Clean the response: remove unnecessary prefixes/suffixes around JSON
         response_text = response_text.replace("```json\n", "").replace("\n```", "").strip()
@@ -33,8 +33,8 @@ async def ask_itinerary(request: ItineraryRequest):
             try:
                 # Try to parse the cleaned response as JSON
                 itinerary_json = json.loads(response_text)
-                print("Parsed JSON:")
-                print(itinerary_json)  # Print the parsed JSON to check
+                # print("Parsed JSON:")
+                # print(itinerary_json)  # Print the parsed JSON to check
             except json.JSONDecodeError as e:
                 raise HTTPException(status_code=500, detail=f"JSON decoding error: {str(e)}")
         else:

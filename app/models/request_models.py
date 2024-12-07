@@ -10,4 +10,4 @@ class ItineraryRequest(BaseModel):
     activity_types: list[str]
     travel_preferences: str
     preferences: str
-    budget: str
+    budget: float
