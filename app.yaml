@@ -1,0 +1,17 @@
+runtime: custom  # This tells App Engine to use a custom runtime (Docker)
+env: flex  # Flex environment for more control over resources
+
+instance_class: F2  # This defines the size of the instance (you can adjust as needed)
+
+entrypoint: gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app  # Optional, you can also use CMD in Dockerfile
+
+env_variables:
+  # Define any environment variables you need
+  GEMINI_API_KEY : 'AIzaSyBdXEoHV5w2eigynU6R5GCPddMPvbqlabE'
+  GOOGLE_API_KEY : 'AIzaSyCCPmhvtguhxsCt_rtzv0mU2C3YKTG9GqU'
+  DB_NAME : 'itinerary_db'
+  DB_USER : 'postgres'
+  DB_PASSWORD : 'postgres'
+  DB_HOST : '35.224.69.232'
+  DB_PORT : '5432'
+  API_PORT : 8080

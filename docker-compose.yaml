@@ -1,0 +1,51 @@
+version: '3.8'
+services:
+    api:
+        image: 'python:3.12.1-alpine'
+        container_name: fastapi
+        build:
+           context: .
+           dockerfile: Dockerfile
+        env_file: .env
+        ports:
+            - '${API_PORT:-8080}:8080'
+        environment:
+            DB_NAME: '${DB_NAME}'
+            DB_USER: '${DB_USER}'
+            DB_PASS: '${DB_PASS:-secret}'
+            DB_HOST: '${DB_HOST:-pgsql}'
+            DB_PORT: '${DB_PORT:-5432}'
+            DB_INSTANCE_NAME: '${DB_INSTANCE_NAME}'
+        restart: unless-stopped
+        networks:
+            - devfest24
+        depends_on:
+            - pgsql
+
+    pgsql:
+        image: 'postgres:16'
+        container_name: fastapidb_medango
+        restart: unless-stopped
+        ports:
+            - '${DB_PORT:-5432}:5432'
+        environment:
+            PGPASSWORD: '${DB_PASS:-secret}'
+            POSTGRES_DB: '${DB_NAME}'
+            POSTGRES_USER: '${DB_USER}'
+            POSTGRES_PASSWORD: '${DB_PASS:-secret}'
+        volumes:
+            #- './app/postgres/data/inframail.sql:/docker-entrypoint-initdb.d/inframail.sql'
+            - 'devfest24-pgsql:/var/lib/postgresql/data'
+        networks:
+            - devfest24
+        healthcheck:
+            test: [ "CMD", "pg_isready", "-q", "-d", "${DB_NAME}", "-U", "${DB_USER}" ]
+            retries: 3
+            timeout: 5s
+
+networks:
+    devfest24:
+        driver: bridge
+volumes:
+    devfest24-pgsql:
+        driver: local
